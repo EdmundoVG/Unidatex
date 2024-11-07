@@ -1,0 +1,83 @@
+User
+Explica como se maneja la transaccion en este codigo:
+
+Connection connection = null;
+        try {
+        connection = Conexion.conectar();
+        connection.setAutoCommit(false); // Desactiva la confirmación automática de transacciones
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement("{CALL `universidad`.`updateMisters`(?, ?, ?, ?, ?, ?, ?, ?, ?)}")) {
+            int id_mister= Integer.parseInt(jTextField_idmisters.getText());
+            
+            int fk_id_sub = Integer.parseInt(jComboBox_FK_subject.getSelectedItem().toString());
+            String name_mister = jTextField_namemister.getText();
+            String lastname_mister = jTextField_lastnamemister.getText();
+            String direction_mister = jTextField_directionmister.getText();
+            String phone_mister = jTextField_phonemister.getText();
+            String birt_hmister = jTextField_birthmister.getText();
+            String category_mister = jTextField_categorymister.getText();
+            int fk_id_session_m = Integer.parseInt(jComboBox_fk_id_session_m.getSelectedItem().toString());
+            
+            // Inicio de la transacción
+            connection.setAutoCommit(false);
+
+                preparedStatement.setInt(1, id_mister);
+                preparedStatement.setInt(2, fk_id_sub);
+                preparedStatement.setString(3, name_mister);
+                preparedStatement.setString(4, lastname_mister);
+                preparedStatement.setString(5, direction_mister);
+                preparedStatement.setString(6, phone_mister);
+                preparedStatement.setString(7, birt_hmister);
+                preparedStatement.setString(8, category_mister);
+                preparedStatement.setInt(9, fk_id_session_m);
+
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                connection.rollback(); // Deshace la transacción en caso de error
+                JOptionPane.showMessageDialog(null, ex.toString());
+            }
+        
+            connection.commit(); // Confirma la transacción si no hubo errores
+            conexion.Maestros(jTable_Principal);
+            jDialog_updateMisters.dispose();
+
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(null, ex.toString());
+    } finally {
+        if (connection != null) {
+            try {
+                connection.setAutoCommit(true); // Reactiva la confirmación automática de transacciones
+                connection.close();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, ex.toString());
+            }
+        }
+
+
+Este código muestra el manejo de una transacción en Java utilizando JDBC (Java Database Connectivity) para interactuar con una base de datos. Una transacción es un conjunto de operaciones que deben ejecutarse como una unidad atómica, es decir, todas tienen éxito o fallan juntas.
+
+Aquí hay un desglose del manejo de la transacción en el código:
+
+Se establece una conexión a la base de datos mediante la clase Conexion (que probablemente contenga la lógica para conectarse a la base de datos).
+
+Se desactiva la confirmación automática de transacciones en la conexión utilizando connection.setAutoCommit(false). Esto significa que las transacciones no se confirmarán automáticamente después de cada sentencia SQL, permitiendo un control manual de la confirmación o reversión.
+
+Se prepara una sentencia SQL parametrizada para llamar a un procedimiento almacenado (updateMisters) mediante un objeto PreparedStatement.
+
+Los parámetros se establecen en la sentencia preparada con los valores obtenidos de elementos de la interfaz de usuario (text fields, combo boxes, etc.).
+
+Se inicia explícitamente la transacción con connection.setAutoCommit(false) nuevamente, aunque esto ya se ha hecho anteriormente.
+
+Se ejecuta la actualización (executeUpdate()) usando la sentencia preparada para modificar la base de datos.
+
+Si hay una excepción (SQLException) durante la ejecución de la actualización, se deshace la transacción mediante connection.rollback(). Esto revierte cualquier cambio realizado en la base de datos dentro de la transacción actual.
+
+Si la ejecución es exitosa, se confirma la transacción usando connection.commit(). Esto confirma todos los cambios realizados en la transacción.
+
+Se llama a conexion.Maestros(jTable_Principal) para actualizar la tabla principal después de haber realizado los cambios en la base de datos.
+
+En la sección catch (SQLException ex), si hay alguna excepción, se muestra un mensaje de error.
+
+En la sección finally, se asegura de que la conexión se cierre correctamente. Se restablece connection.setAutoCommit(true) para reactivar la confirmación automática de transacciones y luego se cierra la conexión.
+
+En resumen, este código utiliza el control manual de transacciones para asegurar que todas las operaciones se realicen correctamente y que los cambios en la base de datos sean consistentes. Si ocurre un error, la transacción se revierte para evitar cambios no deseados en la base de datos. Si todo va bien, se confirman los cambios realizados.
